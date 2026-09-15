@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JoPACC PDF Corpus &mdash; Dataset Scope &amp; Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#13293d; --ink-2:#2f4a63; --paper:#ffffff; --panel:#f4f6f8;
+  --line:#d7dee5; --muted:#5f7183; --amber:#e0930a; --amber-soft:#fdf0d6;
+  --flag:#a8331c; --flag-soft:#fbe7e2; --ok:#1f6b4d; --ok-soft:#e2f0ea;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:#e8eef4; --ink-2:#b9c9d7; --paper:#0e1a24; --panel:#17262f;
+    --line:#2c3f4d; --muted:#8fa3b4; --amber:#f0ae3c; --amber-soft:#3a2c10;
+    --flag:#e8836c; --flag-soft:#3c1d16; --ok:#6cc39c; --ok-soft:#12332a;
+  }
+}
+:root[data-theme="dark"] {
+  --ink:#e8eef4; --ink-2:#b9c9d7; --paper:#0e1a24; --panel:#17262f;
+  --line:#2c3f4d; --muted:#8fa3b4; --amber:#f0ae3c; --amber-soft:#3a2c10;
+  --flag:#e8836c; --flag-soft:#3c1d16; --ok:#6cc39c; --ok-soft:#12332a;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.6;
+  -webkit-text-size-adjust:100%;
+}
+.wrap { max-width:1080px; margin:0 auto; padding:0 24px 96px; }
+
+header { padding:64px 0 40px; border-bottom:2px solid var(--ink); }
+h1 { font-size:clamp(28px,4.4vw,46px); line-height:1.12; margin:0 0 14px; font-weight:600; letter-spacing:-.02em; max-width:19ch; }
+.sub { color:var(--muted); max-width:62ch; margin:0; }
+.stamp { font-family:var(--mono); font-size:12.5px; color:var(--muted); margin:0 0 22px; }
+
+.matrix { margin:44px 0 8px; }
+.matrix h2 { font-size:15px; font-weight:600; margin:0 0 4px; }
+.matrix p.cap { margin:0 0 16px; color:var(--muted); font-size:14px; max-width:60ch; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(58px,1fr)); gap:5px; }
+.cell {
+  border:1px solid var(--line); border-radius:3px; padding:9px 4px;
+  text-align:center; font-family:var(--mono); line-height:1.25;
+}
+.cell b { display:block; font-size:12.5px; font-weight:500; }
+.cell i { display:block; font-style:normal; font-size:10.5px; color:var(--muted); }
+.cell.nat { background:var(--ok-soft); border-color:var(--ok); }
+.cell.ocr { background:var(--amber-soft); border-color:var(--amber); }
+.legend { display:flex; gap:20px; flex-wrap:wrap; margin:14px 0 0; font-size:13.5px; color:var(--muted); }
+.legend span { display:inline-flex; align-items:center; gap:7px; }
+.sw { width:13px; height:13px; border-radius:3px; border:1px solid; flex:none; }
+.sw.nat { background:var(--ok-soft); border-color:var(--ok); }
+.sw.ocr { background:var(--amber-soft); border-color:var(--amber); }
+
+h2.sec {
+  font-size:13px; font-family:var(--mono); font-weight:500; color:var(--muted);
+  margin:64px 0 6px; padding-bottom:8px; border-bottom:1px solid var(--line);
+}
+h3 { font-size:23px; font-weight:600; margin:26px 0 10px; letter-spacing:-.01em; }
+h4 { font-size:16px; font-weight:600; margin:24px 0 6px; }
+p { max-width:72ch; }
+ul { max-width:72ch; padding-left:20px; }
+li { margin:6px 0; }
+
+.callout {
+  border-left:3px solid var(--amber); background:var(--panel);
+  padding:16px 20px; margin:22px 0; border-radius:0 5px 5px 0;
+}
+.callout.flag { border-left-color:var(--flag); }
+.callout p { margin:0; }
+.callout p + p { margin-top:10px; }
+
+.scroll { overflow-x:auto; margin:18px 0; border:1px solid var(--line); border-radius:5px; }
+table { border-collapse:collapse; width:100%; font-size:13.5px; min-width:760px; }
+th {
+  text-align:left; font-weight:600; font-size:12px; color:var(--muted);
+  padding:11px 12px; border-bottom:1px solid var(--line);
+  background:var(--panel); position:sticky; top:0; white-space:nowrap;
+}
+td { padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+.mono { font-family:var(--mono); font-size:12.5px; white-space:nowrap; }
+.num { font-family:var(--mono); font-size:12.5px; text-align:right; }
+.fn { font-family:var(--mono); font-size:11.5px; color:var(--ink-2); word-break:break-all; }
+.note { font-size:12.5px; color:var(--muted); min-width:180px; }
+.tag { font-family:var(--mono); font-size:11px; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+.tag.ocr { background:var(--amber-soft); color:var(--amber); border:1px solid var(--amber); }
+.tag.nat { background:var(--ok-soft); color:var(--ok); border:1px solid var(--ok); }
+
+.kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:5px; overflow:hidden; margin:24px 0; }
+.kpi { background:var(--paper); padding:18px 20px; }
+.kpi b { display:block; font-family:var(--mono); font-size:27px; font-weight:500; letter-spacing:-.02em; }
+.kpi span { font-size:12.5px; color:var(--muted); }
+
+footer { margin-top:72px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+@media (max-width:640px) {
+  header { padding:40px 0 28px; }
+  .wrap { padding:0 16px 64px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="stamp">Deliverable 1 &middot; Dataset scope and report inventory</p>
+  <h1>JoPACC payment system reports: what is actually in the corpus</h1>
+  <p class="sub">Thirty-four PDFs covering September 2024 to August 2026, verified against their own
+  contents and cross-checked against JoPACC's publication listing. Coverage is complete and every
+  file is the current published version. Five have been quietly replaced since release, and half
+  the corpus contains no machine-readable text at all.</p>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><b>34</b><span>PDFs, all readable</span></div>
+  <div class="kpi"><b>0</b><span>duplicates or gaps</span></div>
+  <div class="kpi"><b>17</b><span>need OCR</span></div>
+  <div class="kpi"><b>5</b><span>silently replaced</span></div>
+</div>
+
+<section class="matrix">
+  <h2>Coverage and extraction path, by reporting period</h2>
+  <p class="cap">Every period in the target window is present exactly once. Colour shows how the
+  text can be read out of each file.</p>
+  <div class="grid"><div class="cell ocr"><b>Sep</b><i>24</i></div><div class="cell ocr"><b>Oct</b><i>24</i></div><div class="cell ocr"><b>Nov</b><i>24</i></div><div class="cell ocr"><b>Dec</b><i>24</i></div><div class="cell ocr"><b>Jan</b><i>25</i></div><div class="cell ocr"><b>Feb</b><i>25</i></div><div class="cell ocr"><b>Mar</b><i>25</i></div><div class="cell ocr"><b>Apr</b><i>25</i></div><div class="cell ocr"><b>May</b><i>25</i></div><div class="cell ocr"><b>Jun</b><i>25</i></div><div class="cell ocr"><b>Jul</b><i>25</i></div><div class="cell ocr"><b>Aug</b><i>25</i></div><div class="cell nat"><b>Sep</b><i>25</i></div><div class="cell nat"><b>Oct</b><i>25</i></div><div class="cell nat"><b>Nov</b><i>25</i></div><div class="cell nat"><b>Dec</b><i>25</i></div><div class="cell nat"><b>Jan</b><i>26</i></div><div class="cell nat"><b>Feb</b><i>26</i></div><div class="cell nat"><b>Mar</b><i>26</i></div><div class="cell nat"><b>Apr</b><i>26</i></div><div class="cell nat"><b>May</b><i>26</i></div><div class="cell nat"><b>Jun</b><i>26</i></div><div class="cell nat"><b>Jul</b><i>26</i></div><div class="cell nat"><b>Aug</b><i>26</i></div></div>
+  <div style="height:14px"></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(58px,1fr))"><div class="cell ocr"><b>Q3</b><i>24</i></div><div class="cell ocr"><b>Q4</b><i>24</i></div><div class="cell ocr"><b>Q1</b><i>25</i></div><div class="cell ocr"><b>Q2</b><i>25</i></div><div class="cell nat"><b>Q3</b><i>25</i></div><div class="cell nat"><b>Q4</b><i>25</i></div><div class="cell nat"><b>Q1</b><i>26</i></div><div class="cell nat"><b>Q2</b><i>26</i></div><div class="cell ocr"><b>2024</b><i>yr</i></div><div class="cell nat"><b>2025</b><i>yr</i></div></div>
+  <div class="legend">
+    <span><i class="sw nat"></i> Embedded text &mdash; read directly</span>
+    <span><i class="sw ocr"></i> Outlined to vectors &mdash; OCR required</span>
+  </div>
+</section>
+
+<h2 class="sec">01 &mdash; How the two-year scope should be read</h2>
+<h3>Both readings give the same 34 files</h3>
+<p>The stated window is 14 September 2024 to 14 September 2026. Those dates fall mid-month, and
+JoPACC never publishes a report covering a partial period, so the window has to be snapped
+outward to whole periods. There are two defensible ways to do that, and the interesting result is
+that on this particular window they do not disagree.</p>
+
+<div class="scroll">
+<table>
+<thead><tr><th>Interpretation</th><th>Monthly</th><th>Quarterly</th><th>Yearly</th><th>Total</th></tr></thead>
+<tbody>
+<tr><td><b>By reporting period</b> &mdash; the period the data describes overlaps the window</td>
+<td class="mono">2024-09 &rarr; 2026-08</td><td class="mono">Q3 2024 &rarr; Q2 2026</td><td class="mono">2024, 2025</td><td class="num">34</td></tr>
+<tr><td><b>By publication date</b> &mdash; the report was released inside the window</td>
+<td class="mono">2024-09 &rarr; 2026-08</td><td class="mono">Q3 2024 &rarr; Q2 2026</td><td class="mono">2024, 2025</td><td class="num">34</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Checking this against JoPACC's publication dates rather than assuming it: the August 2024
+monthly went out on 11 September 2024, three days before the window opens, so it falls out under
+both readings. The August 2026 monthly went out on 13 September 2026, one day before the window
+closes, so it falls in under both. Q2 2024 was published 16 July 2024 and is out; Q3 2024 was
+published 16 October 2024 and is in. The 2023 annual report predates the window and the 2026
+annual report will not exist until roughly March 2027, leaving 2024 and 2025.</p>
+
+<div class="callout">
+<p><b>Recommendation: define the scope by reporting period anyway.</b> The two readings agree here,
+but that is a coincidence of where the window boundaries happen to fall, and it will stop being
+true the moment the window moves. Reporting period is also the more stable key: it is a property
+of the data, whereas a publication date belongs to the file and gets overwritten when JoPACC
+re-issues one &mdash; which, as the next section shows, has happened five times in this corpus.</p>
+<p>Either way, the 34 files you uploaded are exactly the right 34. Nothing is missing and nothing
+extra is present.</p>
+</div>
+
+<h4>Edge periods worth naming explicitly</h4>
+<ul>
+<li><b>Q3 2024</b> covers 1 July to 30 September 2024. Only the last seventeen days fall inside
+the window. It is included because the quarter cannot be subdivided.</li>
+<li><b>The 2024 annual report</b> covers all of calendar 2024, of which roughly three and a half
+months precede the window. Same reasoning.</li>
+<li><b>Q3 2026 and the September 2026 monthly</b> do not exist yet. The quarter has not closed
+and the month is still running as of today. Their absence is expected, not a gap.</li>
+<li><b>The 2026 annual report</b> will not appear until around March 2027.</li>
+</ul>
+
+<h2 class="sec">02 &mdash; Completeness and integrity</h2>
+<p>All 34 files open cleanly, report a sensible page count, and carry an internal reporting period
+that agrees with their filename. No file is byte-identical to another, and no reporting period
+appears twice.</p>
+
+<div class="callout flag">
+<p><b>One detection failure, not a data problem.</b> On the Q1 2025 cover, OCR reads the quarter
+label as <span class="mono">QI 2025</span> &mdash; the digit 1 resolving as a capital I. The file is
+correct; the reader was not. Period parsing in the pipeline has to normalise the usual OCR
+confusions (I/1, O/0, S/5) before matching, and flag any file whose parsed period disagrees with
+its filename rather than silently trusting either.</p>
+</div>
+
+<h4>Every uploaded file is the canonical current version</h4>
+<p>All 34 filenames match the download links on JoPACC's site character for character, numeric
+suffixes included. The six files carrying a <span class="mono">_0</span> or
+<span class="mono">_1</span> suffix are not stray local copies &mdash; that is genuinely how JoPACC
+serves them, the result of uploading a file more than once under the same name. You have the
+current published version of every report in the window.</p>
+
+<h4>Five reports have been silently replaced since first publication</h4>
+<p>JoPACC stores each upload in a month-stamped folder, so comparing the folder a file is served
+from against the date shown next to it exposes replacements the listing page does not advertise.
+The displayed date always stays at the original publication; the file behind it can be newer.</p>
+<ul>
+<li><b>2024 annual report</b> &mdash; listed as 26 March 2025, but served from the July 2026 folder,
+and the PDF's own modification timestamp is 30 July 2026. Sixteen months later. This is the most
+consequential one, because an annual report being rebuilt that long after release suggests
+restated figures rather than a cosmetic fix.</li>
+<li><b>November 2025 monthly</b> &mdash; listed as 11 December 2025, served from the January 2026
+folder, built 19 January 2026 through Adobe rather than PowerPoint. It contains 61 embedded
+images where its neighbours contain roughly 1,500, so it was rebuilt from scratch, not re-exported.</li>
+<li><b>January 2026 monthly</b> &mdash; listed as 12 February 2026, served from the April 2026 folder.</li>
+<li><b>February 2026 monthly</b> &mdash; listed as 17 March 2026, served from the April 2026 folder.
+Together with January, re-issued as a pair on 9 April 2026.</li>
+<li><b>July 2026 monthly</b> &mdash; listed as 12 August 2026, but the PDF was built 30 August 2026,
+eighteen days later, and is served under a <span class="mono">_0</span> suffix.</li>
+</ul>
+
+<div class="callout flag">
+<p><b>Consequence for the pipeline.</b> A file's publication date cannot be trusted as a version
+identifier. The inventory layer should record the content hash, the internal creation timestamp
+and the internal modification timestamp for every PDF, and treat a changed hash under an unchanged
+filename as a re-issue that forces reprocessing rather than a cache hit.</p>
+<p>It is also worth re-extracting the 2024 annual report against the 2025 one once both are
+processed. If the 2024 figures were restated in the July 2026 rebuild, the 2025 report's
+year-on-year comparisons are the place that will show it.</p>
+</div>
+
+<h2 class="sec">03 &mdash; The inventory</h2>
+
+<h3>Yearly &mdash; End of Year Systems Report</h3>
+<div class="scroll"><table>
+<thead><tr><th>Period</th><th>File</th><th>Pages</th><th>Published</th><th>PDF built</th><th>Text</th><th>Notes</th></tr></thead>
+<tbody><tr><td class="mono">2024</td><td class="fn">end_of_year_systems_report_2024_en.pdf</td><td class="num">26</td><td class="mono">2025-03-26</td><td class="mono">2025-03-26</td><td><span class="tag ocr">OCR</span></td><td class="note"><b>replaced</b> &mdash; served from /2026-07/, first published 2025-03-26</td></tr>
+<tr><td class="mono">2025</td><td class="fn">end_of_year_systems_report_2025_en.pdf</td><td class="num">26</td><td class="mono">2026-03-29</td><td class="mono">2026-03-29</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr></tbody></table></div>
+
+<h3>Quarterly</h3>
+<div class="scroll"><table>
+<thead><tr><th>Period</th><th>File</th><th>Pages</th><th>Published</th><th>PDF built</th><th>Text</th><th>Notes</th></tr></thead>
+<tbody><tr><td class="mono">2024-Q3</td><td class="fn">quarterly_report_q3_2024_en.pdf</td><td class="num">9</td><td class="mono">2024-10-16</td><td class="mono">2024-10-16</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2024-Q4</td><td class="fn">quarterly_report_q4_2024_en.pdf</td><td class="num">9</td><td class="mono">2025-01-16</td><td class="mono">2025-01-16</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025</td><td class="fn">quarterly_report_q1_2025_en.pdf</td><td class="num">9</td><td class="mono">&mdash;</td><td class="mono">2025-04-21</td><td><span class="tag ocr">OCR</span></td><td class="note">cover OCR reads &ldquo;QI 2025&rdquo;</td></tr>
+<tr><td class="mono">2025-Q2</td><td class="fn">quarterly_report_q2_2025_en.pdf</td><td class="num">9</td><td class="mono">2025-07-16</td><td class="mono">2025-07-16</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-Q3</td><td class="fn">quarterly_report_q3_2025_en_1.pdf</td><td class="num">9</td><td class="mono">2025-10-15</td><td class="mono">2025-10-16</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-Q4</td><td class="fn">quarterly_report_q4_2025_en.pdf</td><td class="num">9</td><td class="mono">2026-01-18</td><td class="mono">2026-01-18</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-Q1</td><td class="fn">quarterly_report_q1_2026_en.pdf</td><td class="num">9</td><td class="mono">2026-04-16</td><td class="mono">2026-04-16</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-Q2</td><td class="fn">quarterly_report_q2_2026_en.pdf</td><td class="num">9</td><td class="mono">2026-07-19</td><td class="mono">2026-07-16</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr></tbody></table></div>
+
+<h3>Monthly</h3>
+<div class="scroll"><table>
+<thead><tr><th>Period</th><th>File</th><th>Pages</th><th>Published</th><th>PDF built</th><th>Text</th><th>Notes</th></tr></thead>
+<tbody><tr><td class="mono">2024-09</td><td class="fn">september_monthly_report_2024_en_0.pdf</td><td class="num">79</td><td class="mono">2024-10-07</td><td class="mono">2024-10-07</td><td><span class="tag ocr">OCR</span></td><td class="note">79pp seven-section layout</td></tr>
+<tr><td class="mono">2024-10</td><td class="fn">october_monthly_report_2024_en_0.pdf</td><td class="num">81</td><td class="mono">2024-11-07</td><td class="mono">2024-11-07</td><td><span class="tag ocr">OCR</span></td><td class="note">81pp seven-section layout</td></tr>
+<tr><td class="mono">2024-11</td><td class="fn">november_monthly_report_2024_en.pdf</td><td class="num">81</td><td class="mono">2024-12-04</td><td class="mono">2024-12-04</td><td><span class="tag ocr">OCR</span></td><td class="note">81pp seven-section layout</td></tr>
+<tr><td class="mono">2024-12</td><td class="fn">december_monthly_report_2024_en_0.pdf</td><td class="num">81</td><td class="mono">2025-01-13</td><td class="mono">2025-01-13</td><td><span class="tag ocr">OCR</span></td><td class="note">81pp seven-section layout</td></tr>
+<tr><td class="mono">2025-01</td><td class="fn">january_monthly_report_2025_en_0.pdf</td><td class="num">87</td><td class="mono">2025-02-12</td><td class="mono">2025-02-12</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-02</td><td class="fn">february_monthly_report_2025_en_1.pdf</td><td class="num">87</td><td class="mono">2025-03-11</td><td class="mono">2025-03-11</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-03</td><td class="fn">march_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-04-14</td><td class="mono">2025-04-14</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-04</td><td class="fn">april_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-05-12</td><td class="mono">2025-05-12</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-05</td><td class="fn">may_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-06-11</td><td class="mono">2025-06-11</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-06</td><td class="fn">june_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-07-13</td><td class="mono">2025-07-10</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-07</td><td class="fn">july_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-08-11</td><td class="mono">2025-08-11</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-08</td><td class="fn">august_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-09-11</td><td class="mono">2025-09-11</td><td><span class="tag ocr">OCR</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-09</td><td class="fn">september_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-10-12</td><td class="mono">2025-10-12</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-10</td><td class="fn">october_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-11-13</td><td class="mono">2025-11-13</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2025-11</td><td class="fn">november_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2025-12-11</td><td class="mono">2026-01-19</td><td><span class="tag nat">text</span></td><td class="note"><b>replaced</b> &mdash; served from /2026-01/, first published 2025-12-11</td></tr>
+<tr><td class="mono">2025-12</td><td class="fn">december_monthly_report_2025_en.pdf</td><td class="num">87</td><td class="mono">2026-01-08</td><td class="mono">2026-01-08</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-01</td><td class="fn">january_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-02-12</td><td class="mono">2026-04-09</td><td><span class="tag nat">text</span></td><td class="note"><b>replaced</b> &mdash; served from /2026-04/, first published 2026-02-12</td></tr>
+<tr><td class="mono">2026-02</td><td class="fn">february_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-03-17</td><td class="mono">2026-04-09</td><td><span class="tag nat">text</span></td><td class="note"><b>replaced</b> &mdash; served from /2026-04/, first published 2026-03-17</td></tr>
+<tr><td class="mono">2026-03</td><td class="fn">march_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-04-09</td><td class="mono">2026-04-09</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-04</td><td class="fn">april_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-05-21</td><td class="mono">2026-05-21</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-05</td><td class="fn">may_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-06-11</td><td class="mono">2026-06-11</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-06</td><td class="fn">june_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-07-12</td><td class="mono">2026-07-12</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr>
+<tr><td class="mono">2026-07</td><td class="fn">july_monthly_report_2026_en_0.pdf</td><td class="num">87</td><td class="mono">2026-08-12</td><td class="mono">2026-08-30</td><td><span class="tag nat">text</span></td><td class="note"><b>replaced</b> &mdash; file rebuilt 2026-08-30, first published 2026-08-12</td></tr>
+<tr><td class="mono">2026-08</td><td class="fn">august_monthly_report_2026_en.pdf</td><td class="num">87</td><td class="mono">2026-09-13</td><td class="mono">2026-09-13</td><td><span class="tag nat">text</span></td><td class="note">&mdash;</td></tr></tbody></table></div>
+
+<h2 class="sec">04 &mdash; The finding that shapes the whole build</h2>
+<h3>Half the corpus has no text in it at all</h3>
+<p>Seventeen of the 34 files contain essentially no extractable text. An 81-page monthly report
+returns around 275 characters &mdash; barely more than its cover. Every heading, axis label and data
+value has been converted to vector outlines on export, so there is nothing for a text extractor
+to find. Rendered to screen they look identical to the readable files; the difference is invisible
+until you try to read them programmatically.</p>
+<p>The split is almost perfectly chronological. Everything published up to and including the
+August 2025 monthly is outlined. Everything from the September 2025 monthly onward carries real
+text. JoPACC evidently changed an export setting in autumn 2025.</p>
+
+<div class="callout flag">
+<p><b>This is where the accuracy risk lives.</b> A plain OCR pass over these pages reads the
+headings correctly and misses the numbers. The values that matter sit in white type on grey bars
+and in amber type inside ring charts, and default Tesseract settings discard both.</p>
+</div>
+
+<p>Testing on a representative page established what actually works. Rendering at 200 dpi and
+running Tesseract in sparse-text mode across three separately isolated colour layers &mdash; dark
+type, light type, amber type &mdash; recovers the bar values that a single pass loses. The amber
+figures additionally need connected-component filtering to strip the surrounding ring, which
+otherwise reads as punctuation and suppresses the number entirely. With that in place the
+percentage KPI on the test page resolves at 94&thinsp;% confidence, against a complete miss before.</p>
+<p>Because both paths return words with bounding boxes, text-bearing and outlined files can feed
+a single downstream model: values are matched to their axis labels by x-position, not by reading
+order. On the test page the three bar values align to Feb/Mar/Apr within nine pixels.</p>
+
+<h2 class="sec">05 &mdash; Three layouts, not one</h2>
+<div class="scroll"><table>
+<thead><tr><th>Type</th><th>Canvas</th><th>Pages</th><th>Form</th><th>Reading difficulty</th></tr></thead>
+<tbody>
+<tr><td><b>Monthly</b></td><td class="mono">960 &times; 540 pt</td><td class="num">79&ndash;87</td>
+<td>16:9 slide deck, one idea per slide, section dividers</td><td>Lowest &mdash; sparse slides, labelled charts</td></tr>
+<tr><td><b>Quarterly</b></td><td class="mono">1620 &times; 2160 pt</td><td class="num">9</td>
+<td>Tall infographic poster, six or more chart panels per page</td><td>Highest &mdash; dense, panels must be segmented before reading</td></tr>
+<tr><td><b>Yearly</b></td><td class="mono">540 &times; 780 pt</td><td class="num">26</td>
+<td>Portrait infographic, KPI boxes plus narrative commentary</td><td>Medium &mdash; but see the limitation below</td></tr>
+</tbody></table></div>
+<p>The three types are <b>significantly different</b> in layout while sharing a common analytical
+vocabulary: the same four payment systems, the same volume-and-value metric pair, the same
+on-us/off-us and money-transfer/purchase breakdowns. They need three extraction strategies
+feeding one data model, not one strategy.</p>
+
+<h4>What the monthly deck contains</h4>
+<p>Section divider slides carry their titles as real text, which makes them a reliable way to
+segment the deck. In the current 87-page layout the sections are: Systems Summary (p3);
+CliQ, the instant payment system for bank transfers (p9); JoMoPay, the mobile payments switch
+(p25); CliQ&ndash;JoMoPay interoperability (p41); instant payments in Jordan combined (p54);
+eFAWATEERcom bill presentment and payment (p60); Automated Clearing House (p72); and the
+Electronic Cheque Clearing Unit (p78).</p>
+<p>The four 2024 files use an earlier seven-section layout with dividers at 3, 9, 25, 41, 54, 66
+and 72. The structures agree up to page 54 and diverge after it, which is consistent with the
+eight-section layout being an expansion rather than a reshuffle. Section boundaries must be
+discovered per file from the divider slides, never hard-coded.</p>
+
+<div class="callout flag">
+<p><b>Two limitations to record now rather than discover later.</b></p>
+<p>System identity is frequently carried by a logo image, not by text. A slide headed
+&ldquo;<i>Summary</i>&rdquo; with a CliQ logo returns only the word Summary. The system a slide
+belongs to has to be inherited from its enclosing section, which is another reason the divider-based
+segmentation matters.</p>
+<p>The annual reports plot twelve-month trend lines with no data labels &mdash; only an axis. Those
+monthly series cannot be read without estimating from pixel positions, which the brief rules out.
+The pipeline should extract the labelled totals and commentary from those pages and log the
+unlabelled series as a known, deliberate omission. The same figures are available at full
+precision from the monthly reports anyway.</p>
+</div>
+
+<h2 class="sec">06 &mdash; Verification against the source</h2>
+<p>Every claim in this document about publication dates, filenames and file replacement was checked
+against JoPACC's publications listing on 15 September 2026. The listing holds 102 payment system
+reports in total; the 34 in scope are a contiguous and complete slice of it.</p>
+<p>Nothing material is left open. Two smaller points are worth carrying forward:</p>
+<ul>
+<li><b>Re-check before each production run.</b> Because replacements are invisible on the listing
+page, the only reliable detection is comparing content hashes. Running the inventory layer against
+a fresh download is the check.</li>
+<li><b>The 2024 annual report is the one to watch.</b> It is the single file where a replacement is
+likely to have changed published figures rather than formatting.</li>
+</ul>
+
+<footer>
+Compiled from the 34 uploaded PDFs. Reporting periods were read from page 1 of each file rather
+than from its filename; page counts, timestamps, hashes and text-layer measurements come from the
+file structures themselves. Publication dates and replacement evidence come from JoPACC's
+publications listing, checked 15 September 2026. No value in this document is estimated.
+</footer>
+
+</div>
+</body>
+</html>

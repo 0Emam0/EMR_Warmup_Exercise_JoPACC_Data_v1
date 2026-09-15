@@ -1,0 +1,142 @@
+# JoPACC payment system reports -- ETL configuration.
+#
+# Nothing in the source tree hard-codes a path, threshold or label. Tune the
+# pipeline here; the code reads this file and nothing else.
+
+paths:
+  input_dir: data/raw/pdfs
+  output_dir: data/output
+  state_dir: data/state
+  log_dir: logs
+
+scope:
+  # The analytical window, interpreted by reporting period rather than
+  # publication date. See Deliverable 1 for why.
+  window_start: 2024-09-14
+  window_end: 2026-09-14
+  # Files whose period falls outside the window are still processed, but are
+  # marked out-of-scope in the inventory rather than skipped silently.
+  process_out_of_scope: true
+
+classification:
+  # Report type is decided from the PDF's own cover page. The filename is only
+  # used as a cross-check, and a disagreement is raised as a validation error.
+  trust_filename: false
+  page_geometry:
+    # Canvas size is a strong, cheap signal of report type.
+    monthly:   {width_pt: 960,  height_pt: 540,  tolerance_pt: 12}
+    quarterly: {width_pt: 1620, height_pt: 2160, tolerance_pt: 24}
+    yearly:    {width_pt: 540,  height_pt: 780,  tolerance_pt: 12}
+
+text_layer:
+  # Below this, a page is treated as outlined and sent to OCR.
+  min_chars_per_page: 40
+
+ocr:
+  # Render each page to roughly this pixel width, whatever its canvas size,
+  # so glyphs reach OCR at a consistent scale across all three report types.
+  target_px: 2800
+  min_dpi: 100
+  max_dpi: 300
+  # Several passes are run and their readings merged. Where two passes read
+  # the same position differently the losing reading is kept on the token and
+  # surfaced by validation, because that disagreement is the only signal that
+  # a value like '1.74 M' may have been misread as '174M'.
+  # Measured on pages with known values: dropping 'dark' changes nothing,
+  # because the greyscale pass already reads dark type on a light ground.
+  # Dropping 'light' loses every figure on navy slides, and dropping psm 6
+  # loses values that psm 11 alone misses. So this is the cheapest set that
+  # gives up no accuracy, not the cheapest set.
+  layers: [greyscale, light, accent]
+  psm_modes: [11, 6]
+  min_confidence: 40
+  dedupe_tolerance_pt: 6.0
+  # Extra pass with the page turned upright, for rotated bar-chart labels.
+  read_rotated_text: true
+  # Colour separation thresholds. JoPACC's palette is a dark navy, a mid grey
+  # and an amber accent on white.
+  dark_max_lum: 140
+  light_min_lum: 205
+  accent_min_r: 150
+  accent_min_g: 90
+  accent_gb_gap: 25
+  component:
+    # Glyph-sized blobs survive; rings, bars and background art do not.
+    min_h: 2
+    max_h: 200
+    min_w: 1
+    max_w: 400
+    min_fill: 0.10
+
+layout:
+  # Tokens within this vertical distance are treated as one line.
+  line_tolerance_ratio: 0.6
+  # Gap that separates one chart panel from the next, as a fraction of page
+  # height. A KPI caption and the figure beneath it must stay together, so this
+  # is looser than it first appears; the dense quarterly poster needs its own
+  # value because its page is four times taller.
+  panel_gap_ratio: 0.065
+  panel_gap_ratio_by_type:
+    monthly: 0.065
+    quarterly: 0.022
+    yearly: 0.040
+  # A value is matched to the axis label nearest in x, within this fraction
+  # of page width.
+  axis_match_ratio: 0.06
+  # Region of the page treated as footer furniture (page number, date stamp).
+  footer_band_ratio: 0.92
+
+validation:
+  # Reconciliation is only attempted where the report itself presents a total
+  # and its parts together. Tolerance covers the rounding in '81.3% / 18.9%'.
+  share_sum_tolerance_pct: 1.5
+  # Two percentages in one panel are only treated as a split when they land
+  # near a whole. Unrelated figures -- two growth rates side by side -- sum to
+  # nothing in particular and must not be reported as failed reconciliations.
+  share_pair_window_pct: 12.0
+  component_sum_tolerance_ratio: 0.02
+  # Values outside these bounds are flagged for review, never dropped.
+  bounds:
+    percent: {min: 0, max: 100}
+    count:   {min: 0, max: 100000000000}
+    JOD:     {min: 0, max: 1000000000000}
+  # A page yielding fewer tokens than this is reported as a suspected
+  # extraction failure.
+  min_tokens_per_content_page: 4
+
+structure:
+  # Known section headings, matched on divider pages. An unrecognised divider
+  # is not an error -- it is reported as a structural change, which is the
+  # signal that a new report layout has appeared.
+  sections:
+    - {key: summary,          match: "Systems Summary"}
+    - {key: cliq,             match: "Instant Payment System for"}
+    - {key: jomopay,          match: "Jordan Mobile Payments Switch"}
+    - {key: interoperability, match: "Interoperability"}
+    - {key: instant_jordan,   match: "Instant Payment Systems in Jordan"}
+    - {key: efawateercom,     match: "Electronic Bill Presentment"}
+    - {key: ach,              match: "Automated Clearing House"}
+    - {key: eccu,             match: "Electronic Cheque Clearing Unit"}
+
+load:
+  # One workbook per PDF, named by report type and period so files sort
+  # chronologically in a directory listing.
+  filename_template: "jopacc_{report_type}_{period_key}.xlsx"
+  subdirectory_by_type: true
+  sheets:
+    measurements: Measurements
+    unparsed: Unparsed
+    pages: Page_Log
+    metadata: Metadata
+    validation: Validation
+
+logging:
+  level: INFO
+  file_level: DEBUG
+  format: "%(asctime)s  %(levelname)-7s  %(name)-28s  %(message)s"
+
+runtime:
+  max_workers: 1
+  # Reprocess a PDF whose content hash has changed even if its name has not.
+  # JoPACC replaces published files without changing the filename.
+  detect_replaced_files: true

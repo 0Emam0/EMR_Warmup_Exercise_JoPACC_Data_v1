@@ -1,0 +1,15 @@
+# Python 3.10+
+# System dependency: tesseract-ocr (see README) -- required for the 17 of 34
+# reports that carry no text layer.
+
+pymupdf>=1.24          # PDF reading, rendering, span-level text with direction
+pytesseract>=0.3.10    # OCR bindings
+pillow>=10.0           # image handling for the OCR passes
+numpy>=1.24            # colour-layer isolation
+scipy>=1.10            # connected-component filtering (removes chart rings)
+pandas>=2.0            # pytesseract returns OCR results as a DataFrame
+openpyxl>=3.1          # workbook writing
+PyYAML>=6.0            # configuration
+
+# development
+pytest>=7.4

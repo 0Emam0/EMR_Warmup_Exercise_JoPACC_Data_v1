@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+etl/logs/*.log
+etl/logs/*.out
+etl/data/raw/pdfs/*
+!etl/data/raw/pdfs/.gitkeep
+etl/data/state/*
+etl/data/output/*
+.DS_Store

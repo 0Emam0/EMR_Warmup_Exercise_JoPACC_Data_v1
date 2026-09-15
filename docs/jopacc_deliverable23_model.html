@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JoPACC ETL &mdash; Data Dictionary &amp; Data Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#13293d;--ink-2:#2f4a63;--paper:#fff;--panel:#f4f6f8;--line:#d7dee5;
+--muted:#5f7183;--amber:#e0930a;--amber-soft:#fdf0d6;--flag:#a8331c;--flag-soft:#fbe7e2;
+--ok:#1f6b4d;--ok-soft:#e2f0ea;--sans:"IBM Plex Sans",system-ui,sans-serif;
+--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e8eef4;--ink-2:#b9c9d7;
+--paper:#0e1a24;--panel:#17262f;--line:#2c3f4d;--muted:#8fa3b4;--amber:#f0ae3c;--amber-soft:#3a2c10;
+--flag:#e8836c;--flag-soft:#3c1d16;--ok:#6cc39c;--ok-soft:#12332a;}}
+:root[data-theme="dark"]{--ink:#e8eef4;--ink-2:#b9c9d7;--paper:#0e1a24;--panel:#17262f;
+--line:#2c3f4d;--muted:#8fa3b4;--amber:#f0ae3c;--amber-soft:#3a2c10;--flag:#e8836c;
+--flag-soft:#3c1d16;--ok:#6cc39c;--ok-soft:#12332a;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px}
+header{padding:64px 0 40px;border-bottom:2px solid var(--ink)}
+h1{font-size:clamp(28px,4.4vw,44px);line-height:1.12;margin:0 0 14px;font-weight:600;
+letter-spacing:-.02em;max-width:20ch}
+.sub{color:var(--muted);max-width:64ch;margin:0}
+.stamp{font-family:var(--mono);font-size:12.5px;color:var(--muted);margin:0 0 22px}
+h2.sec{font-size:13px;font-family:var(--mono);font-weight:500;color:var(--muted);
+margin:60px 0 6px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+h3{font-size:23px;font-weight:600;margin:26px 0 10px;letter-spacing:-.01em}
+h4{font-size:16px;font-weight:600;margin:26px 0 6px}
+p,ul{max-width:74ch}ul{padding-left:20px}li{margin:6px 0}
+.scroll{overflow-x:auto;margin:18px 0;border:1px solid var(--line);border-radius:5px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
+th{text-align:left;font-weight:600;font-size:12px;color:var(--muted);padding:11px 12px;
+border-bottom:1px solid var(--line);background:var(--panel);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.mono{font-family:var(--mono);font-size:12.5px}
+.k{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.callout{border-left:3px solid var(--amber);background:var(--panel);padding:16px 20px;
+margin:22px 0;border-radius:0 5px 5px 0}
+.callout.flag{border-left-color:var(--flag)}
+.callout.good{border-left-color:var(--ok)}
+.callout p{margin:0}.callout p+p{margin-top:10px}
+.tag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:3px;white-space:nowrap}
+.req{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+.opt{background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:16px;
+overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.5}
+footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:640px){header{padding:40px 0 28px}.wrap{padding:0 16px 64px}}
+</style>
+</head>
+<body><div class="wrap">
+
+<header>
+<p class="stamp">Deliverables 2 and 3 &middot; Data dictionary and data model</p>
+<h1>What can actually be extracted, and the shape to load it in</h1>
+<p class="sub">The JoPACC reports are designed infographics, not data documents.
+That fact decides the grain, and the grain decides everything else. This
+describes what the three report types contain, what survives extraction, and
+the model the pipeline loads into.</p>
+</header>
+
+<h2 class="sec">01 &mdash; Are the three report types the same?</h2>
+<h3>Significantly different in layout, closely shared in vocabulary</h3>
+<p>This distinction matters, because it means one data model is right but one
+extraction strategy is not.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Aspect</th><th>Monthly</th><th>Quarterly</th><th>Yearly</th></tr></thead>
+<tbody>
+<tr><td>Canvas</td><td class="mono">960 &times; 540 pt</td><td class="mono">1620 &times; 2160 pt</td><td class="mono">540 &times; 780 pt</td></tr>
+<tr><td>Pages</td><td>79&ndash;87</td><td>9</td><td>26</td></tr>
+<tr><td>Form</td><td>16:9 slide deck, one idea per slide</td><td>Tall poster, 6+ panels per page</td><td>Portrait, KPI boxes plus commentary</td></tr>
+<tr><td>Section dividers</td><td>Yes, titled in text</td><td>No</td><td>No</td></tr>
+<tr><td>Axis labels</td><td>Upright, below bars</td><td>Rotated, beside bars</td><td>Upright, below lines</td></tr>
+<tr><td>Comparison span</td><td>Trailing 3 months</td><td>Current vs previous quarter</td><td>3 years, monthly resolution</td></tr>
+<tr><td>Narrative text</td><td>None</td><td>Brief footnotes</td><td>Yes, a paragraph per system</td></tr>
+</tbody></table></div>
+
+<p>What they share is the analytical vocabulary. All three cover the same five
+systems, report the same volume-and-value pair, and use the same breakdowns.
+A value extracted from any of them lands in the same table.</p>
+
+<h4>The five payment systems</h4>
+<div class="scroll"><table>
+<thead><tr><th>Key</th><th>System</th><th>What it clears</th></tr></thead>
+<tbody>
+<tr><td class="k">cliq</td><td>CliQ</td><td>Instant payments, transfers issued by banks</td></tr>
+<tr><td class="k">jomopay</td><td>JoMoPay</td><td>Mobile payments switch, transfers issued by mobile wallets</td></tr>
+<tr><td class="k">efawateercom</td><td>eFAWATEERcom</td><td>Electronic bill presentment and payment</td></tr>
+<tr><td class="k">ach</td><td>ACH</td><td>Automated clearing house</td></tr>
+<tr><td class="k">eccu</td><td>ECCU</td><td>Electronic cheque clearing</td></tr>
+</tbody></table></div>
+
+<p>Monthly reports add two cross-cutting sections: <span class="k">interoperability</span>,
+covering CliQ and JoMoPay on the shared ISO 20022 switch, and
+<span class="k">instant_jordan</span>, combining both schemes. The 2024 decks use
+seven sections; the 2025 layout uses eight. They agree up to page 54 and
+diverge after it, so section boundaries are discovered per file and never
+assumed.</p>
+
+<h2 class="sec">02 &mdash; What is actually extractable</h2>
+<p>Verified against the pages, not assumed from the brief.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Data</th><th>Where it appears</th><th>Source element</th><th>Reliable?</th></tr></thead>
+<tbody>
+<tr><td>Transaction volume and value</td><td>All three types, every system</td><td>Labelled bars, KPI cards</td><td>Yes</td></tr>
+<tr><td>User counts</td><td>All three types</td><td>Labelled bars, KPI cards</td><td>Yes</td></tr>
+<tr><td>Period-on-period growth %</td><td>Monthly, quarterly</td><td>Amber text inside ring charts</td><td>Yes, with colour isolation</td></tr>
+<tr><td>Money transfer vs purchase split</td><td>All three</td><td>Stacked bars with value and share</td><td>Yes</td></tr>
+<tr><td>On-us vs off-us direction</td><td>All three</td><td>Stacked bars with value and share</td><td>Yes</td></tr>
+<tr><td>Nationality split of users</td><td>Monthly</td><td>Ring chart with inline labels</td><td>Yes</td></tr>
+<tr><td>Age-band distribution</td><td>Monthly</td><td>Bars labelled by bucket</td><td>Yes</td></tr>
+<tr><td>Billers and services counts</td><td>Monthly (eFAWATEERcom)</td><td>Multi-column KPI strip</td><td>Yes</td></tr>
+<tr><td>Average transaction value</td><td>Yearly</td><td>KPI box</td><td>Yes</td></tr>
+<tr><td>Annual totals and commentary</td><td>Yearly</td><td>KPI box, narrative paragraph</td><td>Yes</td></tr>
+<tr><td>12-month trend series</td><td>Yearly</td><td>Line chart, axis only</td><td><b>No &mdash; omitted</b></td></tr>
+<tr><td>System identity per slide</td><td>Monthly</td><td>Logo image</td><td>Inherited from section</td></tr>
+</tbody></table></div>
+
+<div class="callout flag">
+<p><b>The one category that cannot be extracted.</b> The annual reports plot
+three years of monthly series with an axis and no data labels. Reading them
+would mean measuring pixel heights against a gridline, which produces numbers
+that look precise and are not. They are omitted and logged as a known gap
+rather than estimated. Nothing is lost: the same figures exist at full
+precision in the monthly reports, which the pipeline does extract.</p>
+</div>
+
+<h2 class="sec">03 &mdash; Grain</h2>
+<h3>One row is one number as printed on one page</h3>
+<p>The obvious grain would be one row per period per system per metric. That
+grain is wrong for this source, and the reason is worth stating plainly.</p>
+<p>To load a row at that grain you must assert that a given figure <i>is</i> the
+transaction count for CliQ in August 2026. On a labelled bar chart that
+assertion is safe. On a KPI card whose only system marker is a logo image, or
+on a poster panel where a value sits between two captions, it is a guess. A
+model that demands the assertion forces the pipeline to guess on every page
+where it cannot know, and those guesses become indistinguishable from the
+figures it is sure about.</p>
+
+<div class="callout good">
+<p><b>Loading at the printed-value grain keeps the uncertainty visible.</b> Every
+row carries the page, the panel, the panel title, the label it was matched to
+and a note where no match was possible. A downstream model can promote these
+into a period-by-system-by-metric fact table, and can do it under review, with
+the unmatched rows in plain sight rather than silently resolved.</p>
+</div>
+
+<h2 class="sec">04 &mdash; The model</h2>
+<h3>One fact table, four audit tables</h3>
+<pre>report (one per PDF)
+  |
+  +-- section        1:N   discovered from divider pages
+  |     |
+  |     +-- measurement   N   the fact table
+  |
+  +-- page_log       1:N   how each page was read
+  +-- unparsed       1:N   digit tokens that did not become facts
+  +-- finding        1:N   validation output</pre>
+
+<h4>measurement &mdash; the fact table</h4>
+<div class="scroll"><table>
+<thead><tr><th>Column</th><th>Description</th><th>Type</th><th>Example</th><th>Req?</th></tr></thead>
+<tbody>
+<tr><td class="k">record_id</td><td>Primary key within a workbook: period, page, sequence</td><td>text</td><td class="mono">2026-08-p012-0043</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">source_pdf</td><td>Filename as published by JoPACC</td><td>text</td><td class="mono">august_monthly_report_2026_en.pdf</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">report_type</td><td>monthly, quarterly or yearly</td><td>text</td><td class="mono">monthly</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">reporting_period</td><td>Period the report covers</td><td>text</td><td class="mono">2026-08</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">source_page</td><td>1-based page in the PDF</td><td>int</td><td class="mono">12</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">section_key</td><td>Payment system or cross-cutting chapter</td><td>text</td><td class="mono">cliq</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">section_title</td><td>Divider text the section was named from</td><td>text</td><td class="mono">Instant Payment System for&hellip;</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">panel_index</td><td>Chart panel within the page</td><td>int</td><td class="mono">2</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">panel_title</td><td>Caption above the panel; usually the metric</td><td>text</td><td class="mono">Number of Transactions</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">label</td><td>Axis or category label matched to this value</td><td>text</td><td class="mono">Jordanian</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">label_period</td><td>Label normalised, when it is a period</td><td>text</td><td class="mono">2025-04</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">raw_value</td><td>The literal exactly as printed</td><td>text</td><td class="mono">16.64B JOD</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">value_numeric</td><td>Normalised to base units</td><td>float</td><td class="mono">16640000000</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">unit</td><td>count, JOD, percent or unknown</td><td>text</td><td class="mono">JOD</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">scale_suffix</td><td>K, M or B as printed</td><td>text</td><td class="mono">B</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">extraction_method</td><td>native or ocr</td><td>text</td><td class="mono">ocr</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">ocr_layer</td><td>Which pass produced the winning reading</td><td>text</td><td class="mono">accent</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">confidence</td><td>Reader confidence; 100 for native text</td><td>float</td><td class="mono">94.0</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">ocr_repaired</td><td>Whether character substitutions were undone</td><td>bool</td><td class="mono">FALSE</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">ocr_alternatives</td><td>Competing readings of the same position</td><td>text</td><td class="mono">174M</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">x_pt, y_pt</td><td>Position on the page, in points</td><td>float</td><td class="mono">575.6, 273.3</td><td><span class="tag req">yes</span></td></tr>
+<tr><td class="k">note</td><td>Why a value is uncertain, where it is</td><td>text</td><td class="mono">label matched by proximity only</td><td><span class="tag opt">no</span></td></tr>
+<tr><td class="k">extracted_at_utc</td><td>Run timestamp</td><td>datetime</td><td class="mono">2026-09-15T07:57:03</td><td><span class="tag req">yes</span></td></tr>
+</tbody></table></div>
+
+<h4>Keys and relationships</h4>
+<ul>
+<li><b>Primary key</b> &mdash; <span class="k">record_id</span>, unique within a workbook.</li>
+<li><b>Candidate key</b> &mdash; <span class="k">source_pdf + source_page + x_pt + y_pt</span>.
+A value's position is stable across re-runs, which makes this the key to use when
+comparing two extractions of the same file.</li>
+<li><b>Foreign keys</b> &mdash; <span class="k">source_pdf</span> to the report inventory;
+<span class="k">source_pdf + section_key</span> to the section map;
+<span class="k">source_pdf + source_page</span> to the page log.</li>
+<li><b>Join key to other JoPACC data</b> &mdash; <span class="k">report_type + reporting_period</span>.</li>
+</ul>
+
+<h4>Dimensions, measures, audit</h4>
+<div class="scroll"><table>
+<thead><tr><th>Role</th><th>Columns</th></tr></thead>
+<tbody>
+<tr><td><b>Dimensions</b></td><td class="mono">report_type, reporting_period, section_key, panel_title, label, label_period, unit</td></tr>
+<tr><td><b>Measures</b></td><td class="mono">value_numeric</td></tr>
+<tr><td><b>Degenerate dimensions</b></td><td class="mono">source_page, panel_index, x_pt, y_pt</td></tr>
+<tr><td><b>Audit</b></td><td class="mono">extraction_method, ocr_layer, confidence, ocr_repaired, ocr_alternatives, raw_value, note, extracted_at_utc</td></tr>
+</tbody></table></div>
+
+<div class="callout">
+<p><b>Why <span class="k">raw_value</span> is kept next to the normalised number.</b>
+It costs a column and it is the only way to check a figure without reopening
+the PDF. <span class="mono">16.64B JOD</span> beside
+<span class="mono">16640000000</span> makes a scale error visible at a glance;
+the normalised number alone does not.</p>
+</div>
+
+<h2 class="sec">05 &mdash; Units, scales and the traps in them</h2>
+<div class="scroll"><table>
+<thead><tr><th>As printed</th><th>Loaded as</th><th>Unit</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td class="mono">1.81 M</td><td class="mono">1810000</td><td>count</td><td>Scale expanded to base units</td></tr>
+<tr><td class="mono">16.64B<sub>JOD</sub></td><td class="mono">16640000000</td><td>JOD</td><td>Currency set as a subscript, fused back on</td></tr>
+<tr><td class="mono">130 JOD</td><td class="mono">130</td><td>JOD</td><td>Currency with no scale suffix</td></tr>
+<tr><td class="mono">81.3%</td><td class="mono">81.3</td><td>percent</td><td>Stored as printed, not as a fraction</td></tr>
+<tr><td class="mono">2,601</td><td class="mono">2601</td><td>count</td><td>Thousands separator removed</td></tr>
+<tr><td class="mono">Apr-25</td><td>&mdash;</td><td>&mdash;</td><td>A period label; dates other values, never loaded as one</td></tr>
+<tr><td class="mono">&lt;18, 18-30</td><td>&mdash;</td><td>&mdash;</td><td>Age bands; category labels, not measurements</td></tr>
+<tr><td class="mono">08.2026</td><td>&mdash;</td><td>&mdash;</td><td>Footer stamp; parses as a number, so stripped as page furniture</td></tr>
+</tbody></table></div>
+
+<div class="callout flag">
+<p><b>Three traps that produce plausible wrong numbers rather than errors.</b></p>
+<p>A lost decimal point turns <span class="mono">1.74 M</span> into
+<span class="mono">174M</span> &mdash; a hundredfold error that parses cleanly and
+passes every range check. Only the disagreement between OCR passes exposes it,
+which is why competing readings are kept rather than discarded.</p>
+<p>A stripped percent sign turns <span class="mono">81.3%</span> into a count of
+81.3, and a dropped scale suffix turns <span class="mono">1.74 M</span> into
+1.74. Both arrive as separate text runs and both look like stray characters.</p>
+<p>The footer date stamp <span class="mono">08.2026</span> parses as the number
+8.2026 and would otherwise appear once per page in the fact table.</p>
+</div>
+
+<h2 class="sec">06 &mdash; Reconciliation, and its limits</h2>
+<p>Two checks are safe on this source and are run:</p>
+<ul>
+<li><b>Shares sum to 100%</b> within a panel, where exactly two percentages
+appear. This is the shape the reports use for money-transfer/purchase and
+on-us/off-us splits.</li>
+<li><b>Values fall inside plausible bounds</b> for their unit.</li>
+</ul>
+<div class="callout flag">
+<p><b>Totals are deliberately not checked against the sum of their parts.</b> The
+reports present figures that look additive and are not. The cross-system
+summary counts users of each system separately, and anyone holding both a bank
+account on CliQ and a mobile wallet on JoMoPay is counted in both; the totals
+are not intended to be a sum. Asserting the identity would generate a
+permanent stream of false failures and train whoever reads the validation
+sheet to ignore it.</p>
+</div>
+
+<h2 class="sec">07 &mdash; Detecting change</h2>
+<p>The layout has already changed once inside this two-year window, and will
+change again. Four signals are recorded rather than smoothed over:</p>
+<ul>
+<li><b>An unrecognised section divider</b> is reported as a structural change,
+not dropped. This is how a new chapter announces itself.</li>
+<li><b>A missing expected section</b> is reported the same way. This is how the
+seven-section 2024 layout distinguishes itself from the eight-section one.</li>
+<li><b>A page yielding nothing</b> is logged with its page number, so a redesign
+that defeats extraction is visible rather than silent.</li>
+<li><b>A changed content hash under an unchanged filename</b> forces
+reprocessing. JoPACC replaces published files without renaming them, and five
+files in this window have already been replaced this way.</li>
+</ul>
+
+<footer>
+Compiled from the thirty-four uploaded PDFs. Every structural claim was checked
+against the files themselves; every extraction claim was verified against
+figures read off the rendered pages. Nothing here is estimated.
+</footer>
+
+</div></body></html>
