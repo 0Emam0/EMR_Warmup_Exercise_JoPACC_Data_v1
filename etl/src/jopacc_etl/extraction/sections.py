@@ -15,6 +15,7 @@ structural change rather than dropped.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -30,24 +31,68 @@ class Section:
     recognised: bool
 
 
+_STOPWORDS = {"a", "an", "the", "for", "of", "and", "on", "in", "to", "is", "are"}
+
+
+def _significant_words(phrase: str) -> List[str]:
+    words = re.findall(r"[a-z0-9]+", phrase.lower())
+    return [w for w in words if w not in _STOPWORDS and len(w) > 1]
+
+
+def _page_word_set(text: str) -> set:
+    return set(re.findall(r"[a-z0-9]+", text.lower()))
+
+
+def _words_present(needle_words: List[str], page_words: set) -> bool:
+    """Is every significant word of the match phrase present on the page?
+
+    Native text preserves reading order, so a plain substring check works.
+    OCR does not: a divider's title is read as a scattered bag of words in
+    whatever order their positions happened to sort into, so 'Instant Payment
+    System for' never appears as a contiguous phrase even though every word
+    of it is genuinely on the page. Checking word presence rather than word
+    order is what makes divider detection work on both.
+
+    Matching allows only simple plural/singular variation ('Payment' against
+    a page that has 'Payments'), not arbitrary substring containment. A wider
+    containment check looks harmless but is not: 'interoperability' contains
+    'in' as a run of letters, and 'in' is one of the commonest words on any
+    page, so a naive substring check matches almost every page in the report
+    against the interoperability rule alone.
+    """
+    for needle in needle_words:
+        if not any(word == needle or word == needle + "s" or needle == word + "s"
+                   for word in page_words):
+            return False
+    return True
+
+
 def find_dividers(page_texts: Dict[int, str], cfg: dict) -> List[dict]:
     """Locate section divider pages and name them.
 
-    A divider is a sparse page whose text matches one of the configured
+    A divider is a sparse page whose words match one of the configured
     section headings. Sparseness matters: the phrase 'Automated Clearing
     House' also appears in body slides, and only the divider is otherwise
     nearly empty.
     """
     rules = cfg["structure"]["sections"]
+    rule_words = [(rule, _significant_words(rule["match"])) for rule in rules]
     found = []
     for page_no, text in sorted(page_texts.items()):
         flat = " ".join(text.split())
         if len(flat) > 240:                     # a content page, not a divider
             continue
-        for rule in rules:
-            if rule["match"].lower() in flat.lower():
-                found.append({"page": page_no, "key": rule["key"], "title": flat[:120]})
-                break
+        page_words = _page_word_set(flat)
+        # A page can satisfy more than one rule at once -- 'Instant Payment
+        # Systems in Jordan' contains every word 'Instant Payment System for'
+        # (the CliQ rule) needs too. The more specific rule -- the one
+        # requiring more words -- is preferred, rather than whichever rule
+        # happens to be listed first in the config.
+        matches = [(rule, words) for rule, words in rule_words
+                  if _words_present(words, page_words)]
+        if matches:
+            rule, _ = max(matches, key=lambda m: len(m[1]))
+            found.append({"page": page_no, "key": rule["key"], "title": flat[:120]})
     return found
 
 

@@ -6,7 +6,7 @@ September 2024 – September 2026.
 
 ## Status
 
-**17 of 34 source PDFs processed** (all the text-bearing reports, Sep 2025
+**All 34 of 34 source PDFs processed.** See [`PROGRESS.md`](PROGRESS.md) for known limitations on the OCR-derived reports.
 onward). The remaining 17 need OCR and are still in progress — see
 [`PROGRESS.md`](PROGRESS.md) for exactly which ones and why.
 
