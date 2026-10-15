@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color vision slider example</title>
+<style>
+  :root {
+    --bg: #ffffff; --text: #1f3347; --muted: #5b6b7a; --line: #d9dde1;
+    --accent: #ffb400; --panel: #f6f7f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14202b; --text: #e8edf2; --muted: #9aabba; --line: #2b3b4a; --panel: #1b2a37; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; background: var(--bg); color: var(--text);
+         font-family: Calibri, "Segoe UI", system-ui, sans-serif; line-height: 1.5; }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  .controls { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .row { display: flex; align-items: center; gap: 12px; margin: 8px 0; flex-wrap: wrap; }
+  .row label { min-width: 150px; font-size: 14px; color: var(--muted); }
+  .row input[type=range] { flex: 1; min-width: 160px; accent-color: var(--accent); }
+  .row output { min-width: 44px; text-align: right; font-weight: 600; font-size: 14px; }
+  .types { display: flex; gap: 8px; flex-wrap: wrap; }
+  .types button { font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+                  border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  .types button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #1f3347; font-weight: 600; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  svg { width: 100%; height: auto; display: block; }
+  .caption { font-size: 13px; color: var(--muted); margin: 0 0 4px; }
+  svg text { fill: var(--muted); font-family: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Color vision slider</h1>
+  <p class="sub">Move "Color adjustment" to shift the chart from the standard palette to a color-blind-safe one.</p>
+
+  <section class="controls" aria-label="Color vision controls">
+    <div class="row">
+      <span style="min-width:150px;font-size:14px;color:var(--muted)">Type of color blindness</span>
+      <div class="types" id="types"></div>
+    </div>
+    <div class="row">
+      <label for="sev">Severity of condition</label>
+      <input type="range" id="sev" min="0" max="100" step="1" value="100">
+      <output id="sev-out" for="sev">100%</output>
+    </div>
+    <div class="row">
+      <label for="adj">Color adjustment</label>
+      <input type="range" id="adj" min="0" max="100" step="1" value="0">
+      <output id="adj-out" for="adj">0%</output>
+    </div>
+  </section>
+
+  <p class="caption">QoQ change in total transaction value (%). Source: JoPACC quarterly report workbook.</p>
+  <svg id="chart" viewBox="0 0 680 230" role="img" aria-label="Grouped bar chart of quarterly change in total transaction value for CliQ, JoMoPay and eFAWATEERcom"></svg>
+</main>
+
+<script>
+/* ---------- 1. Data and palettes (replace with your own) ---------- */
+const NAMES = ['CliQ', 'JoMoPay', 'eFAWATEERcom'];
+const STANDARD_PALETTE = ['#D6453D', '#3FA34D', '#F28E2B'];   // red, green, orange: hard to tell apart for many readers
+const SAFE_PALETTE     = ['#0072B2', '#E69F00', '#CC79A7'];   // blue, amber, pink: Okabe-Ito colorblind-safe set
+const QUARTERS = ['Q3 2025', 'Q4 2025', 'Q1 2026', 'Q2 2026'];
+const DATA = [[18.9, 11.7, 6.3], [-2.7, -4.1, 8.6], [4.6, 8.5, -12.0], [8.1, 10.1, 0.0]];
+
+/* ---------- 2. Color vision simulation matrices (Machado et al., 2009, severity 1.0) ---------- */
+const MATRIX = {
+  protan: [[0.152286, 1.052583, -0.204868], [0.114503, 0.786281, 0.099216], [-0.003882, -0.048116, 1.051998]],
+  deutan: [[0.367322, 0.860646, -0.227968], [0.280085, 0.672501, 0.047413], [-0.011820, 0.042940, 0.968881]],
+  tritan: [[1.255528, -0.076749, -0.178779], [-0.078411, 0.930809, 0.147602], [0.004733, 0.691367, 0.303900]]
+};
+const LABELS = { protan: 'Protanopia', deutan: 'Deuteranopia', tritan: 'Tritanopia' };
+let type = 'deutan';
+
+/* ---------- 3. Core color helpers (reusable) ---------- */
+const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const toLinear = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+const toSrgb = c => {
+  c = Math.max(0, Math.min(1, c));
+  return Math.round(255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055));
+};
+
+/* Blend two hex colors. t = 0 returns a, t = 1 returns b. This is what the "Color adjustment" slider drives. */
+function mixHex(a, b, t) {
+  const x = hexToRgb(a), y = hexToRgb(b);
+  return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+
+/* Simulate how a color looks with a given deficiency. severity: 0 = normal vision, 1 = full deficiency. */
+function simulate(hex, severity) {
+  const lin = hexToRgb(hex).map(toLinear);
+  const m = MATRIX[type];
+  const sim = m.map(r => r[0] * lin[0] + r[1] * lin[1] + r[2] * lin[2]);
+  const out = lin.map((v, i) => v * (1 - severity) + sim[i] * severity);
+  return 'rgb(' + out.map(toSrgb).join(',') + ')';
+}
+
+/* ---------- 4. Rendering ---------- */
+function render() {
+  const severity = document.getElementById('sev').value / 100;
+  const adjust = document.getElementById('adj').value / 100;
+  document.getElementById('sev-out').textContent = Math.round(severity * 100) + '%';
+  document.getElementById('adj-out').textContent = Math.round(adjust * 100) + '%';
+
+  document.querySelectorAll('#types button').forEach(b => b.setAttribute('aria-pressed', b.dataset.type === type));
+
+  // Palette the reader gets = standard palette moved toward the safe palette, then viewed through the simulation.
+  const colors = STANDARD_PALETTE.map((c, i) => simulate(mixHex(c, SAFE_PALETTE[i], adjust), severity));
+
+  const baseline = 150, scale = 5.6;
+  let svg = '';
+  NAMES.forEach((n, i) => {
+    svg += `<rect x="${40 + i * 150}" y="8" width="12" height="12" rx="2" fill="${colors[i]}"/>` +
+           `<text x="${58 + i * 150}" y="14" dominant-baseline="central" font-size="12">${n}</text>`;
+  });
+  svg += `<line x1="40" x2="640" y1="${baseline}" y2="${baseline}" stroke="var(--line)" stroke-width="1"/>`;
+  QUARTERS.forEach((q, qi) => {
+    const gx = 60 + qi * 150;
+    DATA[qi].forEach((v, i) => {
+      const x = gx + i * 38, h = Math.abs(v) * scale, y = v >= 0 ? baseline - h : baseline;
+      svg += `<rect x="${x}" y="${y}" width="32" height="${Math.max(h, 1.5)}" rx="2" fill="${colors[i]}"/>`;
+      const ty = v >= 0 ? y - 8 : y + h + 10;
+      svg += `<text x="${x + 16}" y="${ty}" text-anchor="middle" dominant-baseline="central" font-size="11">${v.toFixed(1)}</text>`;
+    });
+    svg += `<text x="${gx + 55}" y="212" text-anchor="middle" font-size="12">${q}</text>`;
+  });
+  document.getElementById('chart').innerHTML = svg;
+}
+
+/* ---------- 5. Wire up controls ---------- */
+const typesEl = document.getElementById('types');
+Object.keys(LABELS).forEach(k => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.dataset.type = k; b.textContent = LABELS[k];
+  b.addEventListener('click', () => { type = k; render(); });
+  typesEl.appendChild(b);
+});
+document.getElementById('sev').addEventListener('input', render);
+document.getElementById('adj').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
